@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>You've Been Invited!</h2>
+
+<p>
+    <strong>{{ inviter_name }}</strong> has invited you to join
+    <strong>{{ organization_name }}</strong> on ChatCraft.
+</p>
+
+<p>
+    ChatCraft helps teams collaborate on documents with AI-powered assistance.
+    Accept the invitation below to get started.
+</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ invite_url }}" class="cta-button">Accept Invitation</a>
+</div>
+
+<div class="info-box">
+    <p>
+        If you were not expecting this invitation, you can safely ignore this email.
+        The invitation link will expire in 7 days.
+    </p>
+</div>
+
+<p>
+    If the button above does not work, copy and paste the following URL into your browser:
+</p>
+<p style="word-break: break-all; font-size: 14px; color: #6b7280;">
+    {{ invite_url }}
+</p>
+{% endblock %}

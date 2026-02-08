@@ -1,0 +1,110 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        # Auth Service
+        - id: auth-service
+          uri: http://authorization-service:8081
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: false
+
+        # Auth Service - well-known / OAuth2 endpoints (no JWT needed)
+        - id: auth-oauth2
+          uri: http://authorization-service:8081
+          predicates:
+            - Path=/oauth2/**,.well-known/**
+
+        # Organization Service
+        - id: organization-service
+          uri: http://organization-service:8082
+          predicates:
+            - Path=/api/v1/organizations/**,/api/v1/users/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Document Service
+        - id: document-service
+          uri: http://document-service:8083
+          predicates:
+            - Path=/api/v1/documents/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Workspace Service
+        - id: workspace-service
+          uri: http://workspace-service:8085
+          predicates:
+            - Path=/api/v1/workspaces/**,/api/v1/workspace-templates/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Query Service
+        - id: query-service
+          uri: http://query-service:8086
+          predicates:
+            - Path=/api/v1/query/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Billing Service
+        - id: billing-service
+          uri: http://billing-service:8087
+          predicates:
+            - Path=/api/v1/billing/**,/api/v1/plans/**,/api/v1/subscriptions/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Billing webhooks (no auth)
+        - id: billing-webhooks
+          uri: http://billing-service:8087
+          predicates:
+            - Path=/api/v1/billing/webhooks/**
+
+        # Notification Service
+        - id: notification-service
+          uri: http://notification-service:8088
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Export Service
+        - id: export-service
+          uri: http://export-service:8089
+          predicates:
+            - Path=/api/v1/exports/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+        # Audit Service
+        - id: audit-service
+          uri: http://audit-service:8090
+          predicates:
+            - Path=/api/v1/audit/**
+          filters:
+            - name: JwtAuth
+              args:
+                required: true
+
+  data:
+    redis:
+      host: redis
+      port: 6379

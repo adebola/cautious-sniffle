@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>You've Been Added to a Workspace</h2>
+
+<p>
+    Hi {{ user_name }},
+</p>
+
+<p>
+    <strong>{{ added_by }}</strong> has added you to the workspace
+    <strong>{{ workspace_name }}</strong> on ChatCraft.
+</p>
+
+<p>
+    You now have access to all documents and conversations in this workspace.
+    Click the button below to open it.
+</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ workspace_url }}" class="cta-button">Open Workspace</a>
+</div>
+
+<p>
+    If the button above does not work, copy and paste the following URL into your browser:
+</p>
+<p style="word-break: break-all; font-size: 14px; color: #6b7280;">
+    {{ workspace_url }}
+</p>
+{% endblock %}

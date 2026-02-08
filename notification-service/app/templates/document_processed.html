@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Document Processing {{ "Complete" if status == "completed" else "Update" }}</h2>
+
+<p>
+    Hi {{ user_name }},
+</p>
+
+{% if status == "completed" %}
+<p>
+    Your document <strong>{{ document_name }}</strong> has been successfully processed
+    and is now ready for use. You can start asking questions and collaborating
+    with your team right away.
+</p>
+{% elif status == "failed" %}
+<p>
+    Unfortunately, we were unable to process your document
+    <strong>{{ document_name }}</strong>. This may be due to an unsupported format
+    or a temporary issue. Please try uploading the document again.
+</p>
+{% else %}
+<p>
+    There is an update regarding your document <strong>{{ document_name }}</strong>.
+    Current status: <strong>{{ status }}</strong>.
+</p>
+{% endif %}
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ workspace_url }}" class="cta-button">View Workspace</a>
+</div>
+
+<p>
+    If the button above does not work, copy and paste the following URL into your browser:
+</p>
+<p style="word-break: break-all; font-size: 14px; color: #6b7280;">
+    {{ workspace_url }}
+</p>
+{% endblock %}

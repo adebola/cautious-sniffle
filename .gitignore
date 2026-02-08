@@ -1,0 +1,44 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.DS_Store
+
+# Environment
+.env
+
+# Docker volumes
+postgres_data/
+redis_data/
+minio_data/
+rabbitmq_data/
+mongodb_data/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Alembic
+*.pyc
+
+# Logs
+*.log

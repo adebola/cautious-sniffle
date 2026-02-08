@@ -1,0 +1,265 @@
+services:
+  authorization-service:
+    build:
+      context: .
+      dockerfile: authorization-service/Dockerfile
+    container_name: chatcraft-auth
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/chatcraft_auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: gateway-service/Dockerfile
+    container_name: chatcraft-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://authorization-service:8081/oauth2/jwks
+      SPRING_DATA_REDIS_HOST: redis
+    depends_on:
+      authorization-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  organization-service:
+    build:
+      context: .
+      dockerfile: organization-service/Dockerfile
+    container_name: chatcraft-org
+    ports:
+      - "8082:8082"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@postgres:5432/chatcraft_org
+      REDIS_URL: redis://redis:6379/0
+      AUTH_SERVICE_URL: http://authorization-service:8081
+      BILLING_SERVICE_URL: http://billing-service:8087
+      DOCUMENT_SERVICE_URL: http://document-service:8083
+      WORKSPACE_SERVICE_URL: http://workspace-service:8085
+      NOTIFICATION_SERVICE_URL: http://notification-service:8088
+      AUDIT_SERVICE_URL: http://audit-service:8090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  document-service:
+    build:
+      context: .
+      dockerfile: document-service/Dockerfile
+    container_name: chatcraft-doc
+    ports:
+      - "8083:8083"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@postgres:5432/chatcraft_doc
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: chatcraft-documents
+      MINIO_SECURE: "false"
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      AUDIT_SERVICE_URL: http://audit-service:8090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: ingestion-service/Dockerfile
+    container_name: chatcraft-ingestion
+    ports:
+      - "8084:8084"
+    environment:
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: chatcraft-documents
+      MINIO_SECURE: "false"
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      DOCUMENT_SERVICE_URL: http://document-service:8083
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  workspace-service:
+    build:
+      context: .
+      dockerfile: workspace-service/Dockerfile
+    container_name: chatcraft-workspace
+    ports:
+      - "8085:8085"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@postgres:5432/chatcraft_workspace
+      REDIS_URL: redis://redis:6379/0
+      AUTH_SERVICE_URL: http://authorization-service:8081
+      ORGANIZATION_SERVICE_URL: http://organization-service:8082
+      DOCUMENT_SERVICE_URL: http://document-service:8083
+      AUDIT_SERVICE_URL: http://audit-service:8090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8085/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  query-service:
+    build:
+      context: .
+      dockerfile: query-service/Dockerfile
+    container_name: chatcraft-query
+    ports:
+      - "8086:8086"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      WORKSPACE_SERVICE_URL: http://workspace-service:8085
+      DOCUMENT_SERVICE_URL: http://document-service:8083
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      AUDIT_SERVICE_URL: http://audit-service:8090
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: billing-service/Dockerfile
+    container_name: chatcraft-billing
+    ports:
+      - "8087:8087"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@postgres:5432/chatcraft_billing
+      REDIS_URL: redis://redis:6379/0
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY}
+      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY}
+      ORGANIZATION_SERVICE_URL: http://organization-service:8082
+      NOTIFICATION_SERVICE_URL: http://notification-service:8088
+      AUDIT_SERVICE_URL: http://audit-service:8090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8087/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    container_name: chatcraft-notification
+    ports:
+      - "8088:8088"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@postgres:5432/chatcraft_notification
+      REDIS_URL: redis://redis:6379/0
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_SENDER_EMAIL: ${FROM_EMAIL:-noreply@chatcraft.io}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  export-service:
+    build:
+      context: .
+      dockerfile: export-service/Dockerfile
+    container_name: chatcraft-export
+    ports:
+      - "8089:8089"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      WORKSPACE_SERVICE_URL: http://workspace-service:8085
+      AUDIT_SERVICE_URL: http://audit-service:8090
+    depends_on: {}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8089/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  audit-service:
+    build:
+      context: .
+      dockerfile: audit-service/Dockerfile
+    container_name: chatcraft-audit
+    ports:
+      - "8090:8090"
+    environment:
+      MONGODB_URL: mongodb://mongo:password@mongodb:27017
+      MONGODB_DATABASE: chatcraft_audit
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5

@@ -1,0 +1,100 @@
+CHATCRAFT PROFESSIONAL
+======================
+
+Product Description
+-------------------
+ChatCraft Professional is a document intelligence platform that enables professionals to upload documents, organize them into workspaces (cases, matters, projects), and query them using AI with accurate source citations.
+
+Unlike general-purpose AI assistants, ChatCraft Professional is purpose-built for professionals who need to work with large document collections and require verifiable, cited answers they can trust and reference in their work.
+
+
+Target Market
+-------------
+- Legal: Law firms, in-house counsel, legal researchers
+- Medical: Hospitals, clinics, medical researchers
+- Accounting/Audit: Audit firms, financial analysts, compliance teams
+- Consulting: Strategy consultants, management consultants, advisory firms
+- Research: Academic researchers, think tanks, policy analysts
+
+
+Core Value Proposition
+----------------------
+1. Document-Centric Intelligence: Upload PDFs, Word docs, spreadsheets - query them all
+2. Workspace Organization: Group documents by case, matter, project, or engagement
+3. Verifiable Citations: Every AI answer includes page numbers and section references
+4. Team Collaboration: Invite colleagues with role-based access control
+5. Industry Templates: Pre-configured workspaces for legal, medical, audit, research
+6. Compliance Ready: Full audit trail of all queries and actions
+
+
+Key Features
+------------
+- Multi-format document upload (PDF, DOCX, XLSX, TXT)
+- Intelligent document parsing with structure preservation
+- Workspace templates for different professional verticals
+- AI-powered document querying with source citations
+- Query session management and history
+- Team collaboration with granular permissions
+- Export sessions as professional reports (DOCX/PDF)
+- Complete audit logging for compliance
+- Usage analytics and insights
+
+
+Technical Architecture
+----------------------
+- Microservices architecture (10 services)
+- Python FastAPI for most services, Java Spring for Auth/Gateway
+- PostgreSQL with pgvector for data and embeddings
+- Angular (Web) + Flutter (Mobile)
+- Kubernetes deployment on GCP
+- Multi-tenant with organization-level isolation
+
+
+Pricing Tiers (Nigerian Market)
+-------------------------------
+- Professional Starter: ₦150,000/month
+  5 workspaces, 50 documents, 2 team members, 500 queries/month
+
+- Professional Growth: ₦400,000/month
+  20 workspaces, 200 documents, 10 team members, 2,000 queries/month
+
+- Professional Enterprise: Custom pricing
+  Unlimited everything, SSO, on-premise option, dedicated support
+
+
+Relationship to ChatCraft
+-------------------------
+ChatCraft Professional is a standalone product, separate from ChatCraft (the customer engagement chatbot platform). While both products leverage AI and document processing, they serve fundamentally different use cases:
+
+- ChatCraft: Customer-facing chatbots for businesses (B2B2C)
+- ChatCraft Professional: Internal document intelligence for professionals (B2B)
+
+The products share branding lineage but have separate codebases, infrastructure, and go-to-market strategies.
+
+
+URLs
+----
+- Product Website: https://professional.chatcraft.cc (planned)
+- Application: https://app.professional.chatcraft.cc (planned)
+- API Documentation: https://docs.professional.chatcraft.cc (planned)
+
+
+Project Status
+--------------
+Planning and specification phase. Technical architecture defined, implementation roadmap established (20 weeks to MVP).
+
+
+Key Differentiators vs Competitors
+----------------------------------
+1. Nigerian/African market focus with Naira pricing
+2. WhatsApp integration for mobile-first users (future)
+3. Mid-market pricing (between consumer tools and enterprise solutions)
+4. "Bring your own documents" focus vs pre-built databases
+5. Multi-vertical platform (not just legal or just medical)
+6. On-premise deployment option for enterprise clients
+
+
+Contact
+-------
+Adebola Omoboya
+CEO Factorial Systems

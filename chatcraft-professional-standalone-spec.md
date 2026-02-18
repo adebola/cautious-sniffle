@@ -233,43 +233,28 @@ ChatCraft Professional is a document intelligence platform that enables professi
 #### Web Application
 | Component | Technology |
 |-----------|------------|
-| Framework | React 18 + TypeScript |
-| State Management | Zustand or TanStack Query |
-| UI Components | Tailwind CSS + shadcn/ui |
-| Build Tool | Vite |
+| Framework | Angular 17+ |
+| State Management | NgRx or Angular Signals |
+| UI Components | Angular Material or PrimeNG |
+| HTTP Client | Built-in HttpClient |
+| Build Tool | Angular CLI |
 
 #### Mobile Application
 | Component | Technology |
 |-----------|------------|
-| Framework | React Native + Expo |
-| Navigation | React Navigation v6 |
-| State Management | Zustand (shared with web) |
-| UI Components | React Native Paper or Tamagui |
-| File Handling | expo-document-picker, expo-file-system |
-| Auth Storage | expo-secure-store |
+| Framework | Flutter 3.x |
+| State Management | Riverpod or BLoC |
+| UI Components | Material 3 (built-in) |
+| HTTP Client | Dio |
+| Local Storage | flutter_secure_storage, Hive |
+| File Handling | file_picker, path_provider |
 
-#### Shared Code (Web + Mobile)
-| Component | Location |
-|-----------|----------|
-| API Client | `packages/api-client/` |
-| TypeScript Types | `packages/types/` |
-| Validation Schemas | `packages/validation/` (Zod) |
-| Business Logic | `packages/core/` |
-
-#### Monorepo Structure
-```
-chatcraft-professional/
-├── apps/
-│   ├── web/          # React (Vite)
-│   ├── mobile/       # React Native (Expo)
-│   └── api/          # Backend services
-├── packages/
-│   ├── api-client/   # Shared API client
-│   ├── types/        # Shared TypeScript types
-│   ├── validation/   # Shared Zod schemas
-│   └── ui/           # Shared component logic (if using Tamagui)
-└── package.json      # Turborepo or Nx config
-```
+#### Shared Assets
+| Asset | Approach |
+|-------|----------|
+| API Contracts | OpenAPI spec → generate clients for both |
+| Design Tokens | Shared JSON (colors, spacing, typography) |
+| Icons | Same icon set (Material Icons works in both) |
 
 ### 3.5 Infrastructure
 

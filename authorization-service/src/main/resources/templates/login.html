@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatCraft - Sign In</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="auth-header">
+        <div class="container">
+            <nav class="d-flex justify-content-between align-items-center">
+                <a class="navbar-brand" th:href="@{/}">
+                    <img th:src="@{/image/chatcraft-logo2.png}" alt="ChatCraft">
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="auth-main">
+        <div class="container">
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <h1>Sign In</h1>
+                <p>Enter your credentials to access ChatCraft</p>
+            </div>
+
+            <!-- Success Message -->
+            <div th:if="${param.registered}" class="alert alert-success" role="alert">
+                Registration successful. Please sign in.
+            </div>
+
+            <!-- Error Message -->
+            <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                Invalid email or password. Please try again.
+            </div>
+
+            <!-- Login Form -->
+            <form th:action="@{/login}" method="post" id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Email</label>
+                    <input type="email"
+                           class="form-control"
+                           id="username"
+                           name="username"
+                           required
+                           autocomplete="username"
+                           placeholder="you@company.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password"
+                           class="form-control"
+                           id="password"
+                           name="password"
+                           required
+                           autocomplete="current-password"
+                           placeholder="Enter your password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Additional Actions -->
+            <div class="text-center mt-4">
+                <p class="text-muted">
+                    Don't have an account?
+                    <a th:href="@{/register}" class="text-primary">Register your organization</a>
+                </p>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="auth-footer">
+        <div class="container">
+            <p>&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span> ChatCraft Authorization Server</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/auth.js}"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            showButtonLoading(document.getElementById('loginBtn'));
+        });
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html>

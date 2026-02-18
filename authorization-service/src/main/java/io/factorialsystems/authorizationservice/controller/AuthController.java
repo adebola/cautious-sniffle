@@ -1,8 +1,9 @@
 package io.factorialsystems.authorizationservice.controller;
 
-import io.factorialsystems.authorizationservice.dto.request.*;
+import io.factorialsystems.authorizationservice.dto.request.ForgotPasswordRequest;
+import io.factorialsystems.authorizationservice.dto.request.RegisterRequest;
+import io.factorialsystems.authorizationservice.dto.request.ResetPasswordRequest;
 import io.factorialsystems.authorizationservice.dto.response.ApiResponse;
-import io.factorialsystems.authorizationservice.dto.response.AuthResponse;
 import io.factorialsystems.authorizationservice.dto.response.UserDto;
 import io.factorialsystems.authorizationservice.service.AuthService;
 import jakarta.validation.Valid;
@@ -26,24 +27,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<UserDto>> register(@Valid @RequestBody RegisterRequest request) {
         log.debug("Registration request for email: {}", request.getEmail());
-        AuthResponse response = authService.register(request);
+        UserDto response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(response));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-        log.debug("Login request for email: {}", request.getEmail());
-        AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.of(response));
-    }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        log.debug("Token refresh request");
-        AuthResponse response = authService.refreshToken(request);
-        return ResponseEntity.ok(ApiResponse.of(response));
     }
 
     @PostMapping("/forgot-password")

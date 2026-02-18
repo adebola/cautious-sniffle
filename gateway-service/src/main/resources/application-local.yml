@@ -12,6 +12,12 @@ spring:
               args:
                 required: false
 
+        # Auth Service - login page and static assets
+        - id: auth-login
+          uri: http://localhost:8081
+          predicates:
+            - Path=/login,/css/**,/js/**,/images/**
+
         # Auth Service - well-known / OAuth2 endpoints (no JWT needed)
         - id: auth-oauth2
           uri: http://localhost:8081

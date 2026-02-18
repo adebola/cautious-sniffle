@@ -1,23 +1,21 @@
 package io.factorialsystems.authorizationservice.service;
 
-import io.factorialsystems.authorizationservice.dto.request.*;
-import io.factorialsystems.authorizationservice.dto.response.AuthResponse;
+import io.factorialsystems.authorizationservice.dto.request.ForgotPasswordRequest;
+import io.factorialsystems.authorizationservice.dto.request.RegisterRequest;
+import io.factorialsystems.authorizationservice.dto.request.ResetPasswordRequest;
 import io.factorialsystems.authorizationservice.dto.response.UserDto;
 import io.factorialsystems.authorizationservice.exception.BadRequestException;
 import io.factorialsystems.authorizationservice.exception.ConflictException;
 import io.factorialsystems.authorizationservice.exception.NotFoundException;
 import io.factorialsystems.authorizationservice.model.Organization;
 import io.factorialsystems.authorizationservice.model.PasswordResetToken;
-import io.factorialsystems.authorizationservice.model.RefreshToken;
 import io.factorialsystems.authorizationservice.model.User;
 import io.factorialsystems.authorizationservice.repository.OrganizationRepository;
 import io.factorialsystems.authorizationservice.repository.PasswordResetTokenRepository;
-import io.factorialsystems.authorizationservice.repository.RefreshTokenRepository;
 import io.factorialsystems.authorizationservice.repository.UserRepository;
+import io.factorialsystems.authorizationservice.util.TokenHashUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,20 +30,15 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        // Check if email is already registered
+    public UserDto register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("Email is already registered");
         }
 
-        // Generate slug from org name if not provided
         String slug = request.getOrgSlug();
         if (slug == null || slug.isBlank()) {
             slug = slugify(request.getOrgName());
@@ -53,7 +46,6 @@ public class AuthService {
             slug = slugify(slug);
         }
 
-        // Ensure slug uniqueness
         String baseSlug = slug;
         int counter = 1;
         while (organizationRepository.existsBySlug(slug)) {
@@ -61,7 +53,6 @@ public class AuthService {
             counter++;
         }
 
-        // Create organization
         Organization organization = Organization.builder()
                 .name(request.getOrgName())
                 .slug(slug)
@@ -70,7 +61,6 @@ public class AuthService {
 
         organization = organizationRepository.save(organization);
 
-        // Create user with owner role
         User user = User.builder()
                 .organization(organization)
                 .email(request.getEmail())
@@ -80,62 +70,20 @@ public class AuthService {
                 .role("owner")
                 .status("active")
                 .emailVerifiedAt(OffsetDateTime.now())
-                .lastLoginAt(OffsetDateTime.now())
                 .build();
 
         user = userRepository.save(user);
 
         log.info("Registered new user {} for organization {}", user.getEmail(), organization.getSlug());
 
-        return generateAuthResponse(user);
-    }
-
-    @Transactional
-    public AuthResponse login(LoginRequest request) {
-        // Authenticate using Spring Security
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        // Update last login timestamp
-        user.setLastLoginAt(OffsetDateTime.now());
-        userRepository.save(user);
-
-        log.info("User {} logged in successfully", user.getEmail());
-
-        return generateAuthResponse(user);
-    }
-
-    @Transactional
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String tokenHash = jwtService.hashToken(request.getRefreshToken());
-
-        RefreshToken storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
-
-        if (!storedToken.isValid()) {
-            throw new BadRequestException("Refresh token is expired or revoked");
-        }
-
-        // Revoke old refresh token
-        storedToken.setRevokedAt(OffsetDateTime.now());
-        refreshTokenRepository.save(storedToken);
-
-        User user = storedToken.getUser();
-        log.info("Refreshing token for user {}", user.getEmail());
-
-        return generateAuthResponse(user);
+        return toUserDto(user);
     }
 
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
-            // Generate reset token
             String plainToken = UUID.randomUUID().toString();
-            String tokenHash = jwtService.hashToken(plainToken);
+            String tokenHash = TokenHashUtil.hashToken(plainToken);
 
             PasswordResetToken resetToken = PasswordResetToken.builder()
                     .user(user)
@@ -148,13 +96,11 @@ public class AuthService {
             // TODO: Send email with reset link containing plainToken
             log.info("Password reset token generated for user {}. Token: {} (remove in production)", user.getEmail(), plainToken);
         });
-
-        // Always return success to prevent email enumeration
     }
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        String tokenHash = jwtService.hashToken(request.getToken());
+        String tokenHash = TokenHashUtil.hashToken(request.getToken());
 
         PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
@@ -163,12 +109,10 @@ public class AuthService {
             throw new BadRequestException("Invalid or expired reset token");
         }
 
-        // Update password
         User user = resetToken.getUser();
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        // Mark token as used
         resetToken.setUsedAt(OffsetDateTime.now());
         passwordResetTokenRepository.save(resetToken);
 
@@ -189,31 +133,6 @@ public class AuthService {
                 .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
 
         return toUserDto(user);
-    }
-
-    private AuthResponse generateAuthResponse(User user) {
-        // Generate access token (JWT)
-        String accessToken = jwtService.generateAccessToken(user);
-
-        // Generate refresh token (opaque, stored as hash)
-        String plainRefreshToken = jwtService.generateRefreshToken();
-        String refreshTokenHash = jwtService.hashToken(plainRefreshToken);
-
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
-                .user(user)
-                .tokenHash(refreshTokenHash)
-                .expiresAt(OffsetDateTime.now().plusDays(jwtService.getRefreshTokenTtlDays()))
-                .build();
-
-        refreshTokenRepository.save(refreshTokenEntity);
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(plainRefreshToken)
-                .tokenType("Bearer")
-                .expiresIn(jwtService.getAccessTokenTtlSeconds())
-                .user(toUserDto(user))
-                .build();
     }
 
     private UserDto toUserDto(User user) {

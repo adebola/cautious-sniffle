@@ -19,6 +19,26 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+jwt:
+  keystore:
+    path: ${JWT_KEYSTORE_PATH:classpath:keys/jwt-keystore.p12}
+    password: ${JWT_KEYSTORE_PASSWORD:password}
+    alias: ${JWT_KEY_ALIAS:authserver}
+  issuer-uri: ${JWT_ISSUER_URI:http://localhost:8081}
+
+#  hms:
+#    auth:
+#      jwt:
+#        access-token-validity-minutes: ${JWT_ACCESS_TOKEN_VALIDITY:15}
+#        refresh-token-validity-days: ${JWT_REFRESH_TOKEN_VALIDITY:7}
+#        key-store-path: ${JWT_KEYSTORE_PATH:classpath:keys/authserver.jks}
+#        key-store-password: ${JWT_KEYSTORE_PASSWORD:password}
+#        key-alias: ${JWT_KEY_ALIAS:authserver}
 
 management:
   endpoints:
@@ -29,3 +49,5 @@ management:
 logging:
   level:
     io.factorialsystems: DEBUG
+    org.springframework.security.oauth2.server.authorization: TRACE
+    org.springframework.security.web.FilterChainProxy: DEBUG
